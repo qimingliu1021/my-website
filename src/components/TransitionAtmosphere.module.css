@@ -1,0 +1,148 @@
+.transition {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  opacity: .45;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.dustCloud {
+  position: absolute;
+  inset: -45%;
+  background:
+    radial-gradient(ellipse at 65% 25%, #f5d49be6 0%, #d5a55cbd 20%, transparent 48%),
+    radial-gradient(ellipse at 35% 60%, #d2a369f2 0%, #e6bd82d9 24%, transparent 58%),
+    radial-gradient(ellipse at 80% 75%, #a87743c9 0%, transparent 48%);
+  opacity: 0;
+  animation: sand-sweep var(--scene-duration) both;
+}
+.dustNear {
+  background:
+    radial-gradient(ellipse at 60% 40%, #ffe7b7 0%, #e9c28ee6 24%, transparent 54%),
+    radial-gradient(ellipse at 25% 65%, #c28c4fe6 0%, transparent 52%);
+  animation-name: sand-near;
+}
+.wind {
+  position: absolute;
+  overflow: visible;
+  inset: -15%;
+  width: 130%;
+  height: 130%;
+  animation: wind-trails var(--scene-duration) both;
+}
+.grain {
+  position: absolute;
+  width: calc(var(--grain-size) * 2.5);
+  height: var(--grain-size);
+  border-radius: 50%;
+  background: #fff0c4;
+  animation: sand-grain 1.15s both;
+}
+.grain:nth-child(3n) { background: #a87538; }
+@keyframes sand-sweep {
+  0% { transform: translate(65%, -22%) rotate(-12deg); opacity: 0; }
+  22% { opacity: .65; }
+  48% { transform: translate(0, 0) rotate(-7deg); opacity: 1; }
+  72% { opacity: .85; }
+  100% { transform: translate(-65%, 28%) rotate(0deg); opacity: 0; }
+}
+@keyframes sand-near {
+  0%, 8% { transform: translate(75%, -30%) scale(.9); opacity: 0; }
+  40% { opacity: .95; }
+  62% { transform: translate(-10%, 8%) scale(1.1); opacity: .9; }
+  100% { transform: translate(-80%, 35%) scale(1.2); opacity: 0; }
+}
+@keyframes wind-trails {
+  0% { transform: translate(35%, -15%); opacity: 0; }
+  30%, 65% { opacity: .7; }
+  100% { transform: translate(-40%, 22%); opacity: 0; }
+}
+@keyframes sand-grain {
+  0% { transform: translate(32vw, -20vh) rotate(-25deg); opacity: 0; }
+  25%, 60% { opacity: .8; }
+  100% { transform: translate(-45vw, calc(25vh + var(--drift))) rotate(-25deg); opacity: 0; }
+}
+
+.water {
+  position: absolute;
+  left: -5%;
+  top: 0;
+  width: 110%;
+  height: 145%;
+  animation: golden-flush var(--scene-duration) both;
+}
+.waterBehind {
+  left: -15%;
+  width: 130%;
+  opacity: .55;
+  animation-name: golden-undertow;
+}
+@keyframes golden-flush {
+  0% { transform: translateY(75%) skewY(-4deg); }
+  42% { transform: translateY(-8%) skewY(3deg); }
+  62% { transform: translateY(-28%) skewY(-2deg); }
+  100% { transform: translateY(-115%) skewY(0deg); }
+}
+@keyframes golden-undertow {
+  0% { transform: translateY(65%) skewY(5deg); }
+  45% { transform: translateY(-15%) skewY(-3deg); }
+  100% { transform: translateY(-120%) skewY(0deg); }
+}
+
+.nightSky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #10172d;
+}
+.skyGlow {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(ellipse at 75% 15%, #46568055, transparent 45%),
+    radial-gradient(ellipse at 20% 75%, #53427d44, transparent 42%);
+
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff1d1;
+  opacity: var(--star-opacity);
+}
+.constellation {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+}
+.moon {
+  position: absolute;
+  top: 28%;
+  right: 8%;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  box-shadow: inset -10px -7px 0 #e8d8a7;
+  opacity: .5;
+
+}
+.skyHint {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 24px;
+}
+.skyHint span {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff1d1;
+  box-shadow: 0 0 4px #fff1d155;
+}
+@media (prefers-reduced-motion: reduce) {
+  .transition { display: none; }
+}

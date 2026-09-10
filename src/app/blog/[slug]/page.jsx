@@ -1,59 +1,35 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import Container from "@/components/Container";
+import { posts } from "@/lib/posts";
 
-const posts = [
-  {
-    slug: "i-never-thought-i-d-do-startups",
-    title: "I never thought I'd do startups",
-    content: (
-      <>
-        <p>
-          When I was a kid in Korla, the word “startup” meant absolutely nothing
-          to me...
-        </p>
-        <p>（这里写你的文章内容，也可以拆成小标题）</p>
-      </>
-    ),
-  },
-  {
-    slug: "i-ching",
-    title: "I Ching",
-    content: (
-      <>
-        <p>这里写你的《易经》文章。</p>
-      </>
-    ),
-  },
+export function generateStaticParams() {
+  return posts.map(({ slug }) => ({ slug }));
+}
 
-  {
-    slug: "i-hate-cs-i-thank-cs",
-    title: "I hate CS, I thank CS",
-    content: (
-      <>
-        <p>I hate CS, I thank CS</p>
-      </>
-    ),
-  },
-
-  {
-    slug: "the-matches",
-    title: "The matches",
-    content: (
-      <>
-        <p>这里写你的《matches》文章。</p>
-      </>
-    ),
-  },
-];
+export function generateMetadata({ params }) {
+  const post = posts.find((post) => post.slug === params.slug);
+  return { title: post ? `${post.title} | Qiming Liu` : "Article not found" };
+}
 
 export default function BlogPost({ params }) {
-  const post = posts.find((p) => p.slug === params.slug);
-
-  if (!post) return notFound();
+  const index = posts.findIndex((post) => post.slug === params.slug);
+  if (index === -1) notFound();
+  const post = posts[index];
 
   return (
-    <article className="prose prose-lg prose-neutral mx-auto max-w-3xl py-12">
-      <h1 className="text-black">{post.title}</h1>
-      <div className="text-black">{post.content}</div>
-    </article>
+    <main>
+      <Container className="pb-16 pt-28 sm:pt-32">
+        <article className="mx-auto max-w-4xl overflow-hidden  text-[#f6efd9]">
+          <div className="px-6 py-8 sm:px-12 sm:py-12 lg:px-16">
+            <Link href="/#articles" className="text-xs font-semibold uppercase tracking-[0.15em] underline-offset-4 hover:underline">← All writing</Link>
+            <h1 className="mb-10 mt-12 font-display text-2xl font-medium leading-tight tracking-tight sm:text-4xl">{post.title}</h1>
+            <div className="space-y-6 font-serif text-xl leading-[1.85] sm:text-2xl">
+              {post.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            </div>
+          </div>
+        </article>
+      </Container>
+    </main>
   );
 }

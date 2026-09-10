@@ -8,17 +8,51 @@ import Link from "next/link";
 import Image from "next/image";
 import Qiming from "../images/qiming-white.svg";
 import QimingBlack from "../images/qiming-black.svg";
-import QimingChinese from "../images/qiming-chinese.svg";
 import { HiMenuAlt4 } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
 import Button from "./Button";
 import clsx from "clsx";
 import SocialMedia from "./SocialMedia";
-import Footer from "./Footer";
+import ArticleList from "./ArticleList";
+import { NightNavigationProvider } from "./NightNavigation";
+import { NightSky, SCENE_DURATION, TransitionAtmosphere } from "./TransitionAtmosphere";
+
+// Navigation always has a visible slide; reduced motion uses a shorter,
+// straight transition while decorative effects remain disabled.
+const slideTransition = {
+  duration: SCENE_DURATION,
+  ease: [0.45, 0, 0.2, 1],
+};
+const viewSlide = {
+  intro: { y: "0%" },
+  cities: { y: "-100%" },
+};
+
+function DestinyWheel({ turning, direction = 1, arrow, small = false }) {
+  const reduceMotion = useReducedMotion();
+  return (
+    <span aria-hidden="true" className={clsx("relative inline-flex shrink-0 items-center justify-center", small ? "h-4 w-4" : "h-11 w-11")}>
+      <motion.svg
+        viewBox="0 0 40 40"
+        className="absolute inset-0 h-full w-full"
+        style={{ fill: "none" }}
+        initial={false}
+        animate={{ rotate: reduceMotion ? 0 : turning ? 270 * direction : 0 }}
+        transition={{ duration: reduceMotion ? 0 : 1.3, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.45" />
+        <circle cx="20" cy="20" r="13" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="1 9.21" strokeLinecap="round" />
+        {!arrow && <path d="M20 10V30M10 20H30M13 13L27 27M27 13L13 27" fill="none" stroke="currentColor" strokeWidth="1.5" />}
+      </motion.svg>
+      {arrow && <span className="text-xl leading-none">{arrow}</span>}
+    </span>
+  );
+}
 
 const Header = ({
   panelId,
   invert = false,
+  night = false,
   icon: Icon,
   expanded,
   onToggle,
@@ -27,29 +61,29 @@ const Header = ({
   // Container
   return (
     <Container>
-      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-[1fr_auto] items-center gap-y-2 sm:flex sm:justify-between">
         <Link href={"/"} aria-label="Home">
           <Image
-            src={expanded ? QimingBlack : Qiming}
+            src={invert && !night ? QimingBlack : Qiming}
             alt="Qiming Logo"
             width={120}
             height={40}
           />
         </Link>
 
-        <div className="sm:border-l sm:border-transparent sm:pl-16">
+        {night && <div className="order-last col-span-2 sm:order-none sm:border-l sm:border-transparent sm:pl-16">
           <h2
             className="font-display text-base font-semibold"
-            style={{ color: invert ? "#000000" : undefined }}
+            style={{ color: invert && !night ? "#000000" : undefined }}
           >
             Stay in touch
           </h2>
-          <SocialMedia className="mt-6" invert={!invert} />
-        </div>
+          <SocialMedia className="mt-4 gap-x-6 sm:mt-6 sm:gap-x-10" invert={!invert || night} />
+        </div>}
 
         <div className="flex items-center gap-x-4">
-          <Button onClick={onToggle} invert={invert}>
-            Articles
+          <Button onClick={onToggle} invert={invert && !night} className="hidden items-center gap-2 sm:inline-flex" aria-expanded={expanded} aria-controls={panelId}>
+            <span className="inline-flex items-center gap-2"><DestinyWheel turning={expanded} small /> Articles</span>
           </Button>
           <button
             ref={toggleRef}
@@ -59,7 +93,7 @@ const Header = ({
             aria-controls={panelId}
             className={clsx(
               "-m-2.5 rounded-full p-2.5 transition-colors duration-200",
-              invert ? "qiming-btn-on-yellow" : "qiming-btn-on-blue"
+              invert && !night ? "qiming-btn-on-yellow" : "qiming-btn-on-blue"
             )}
             aria-label="Toggle navigation"
           >
@@ -71,366 +105,204 @@ const Header = ({
   );
 };
 
-const DROPDOWN_BG = "#FAC03D";
-const DROPDOWN_FG = "#000000";
-
-const articles = [
-  "I never thought I'd do startups",
-  "I Ching",
-  "I hate CS, I thank CS",
-  "The matches",
-  "Toxic motivation - Hate and Anxiety",
-];
-
-const ArticleLink = ({ children }) => {
+const ScrollHint = ({ onClick, disabled, buttonRef }) => {
+  const reduceMotion = useReducedMotion();
   return (
-    <Link
-      href="#"
-      className="group relative inline-flex items-center gap-3 text-xl font-medium"
-      style={{ color: DROPDOWN_FG }}
-    >
-      <span className="relative">
-        <span className="relative z-10">{children}</span>
-        <span
-          className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100"
-          style={{ backgroundColor: DROPDOWN_FG }}
-        />
-      </span>
-      <span
-        aria-hidden
-        className="ml-1 inline-block opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-        style={{ color: DROPDOWN_FG }}
-      >
-        →
-      </span>
-    </Link>
-  );
-};
-
-const ArticlesNavigation = () => {
-  return (
-    <div
-      className="relative"
-      style={{ backgroundColor: DROPDOWN_BG }}
-    >
-      <div className="max-w-6xl mx-auto py-6 px-4">
-        <div className="flex flex-col gap-4">
-          {articles.map((title) => (
-            <ArticleLink key={title}>{title}</ArticleLink>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ScrollHint = ({ onClick }) => {
-  return (
-    <button
+    <motion.button
+      ref={buttonRef}
       type="button"
       onClick={onClick}
-      aria-label="Scroll to next section"
-      className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 cursor-pointer bg-transparent p-2"
+      disabled={disabled}
+      whileHover={reduceMotion ? undefined : { y: -3 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.95 }}
+      aria-label="Enter Cities"
+      className="mx-auto mb-6 flex flex-col items-center gap-2 rounded-full px-6 py-3 text-white/75 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FAC03D]"
     >
-      <motion.svg
-        width="44"
-        height="56"
-        viewBox="0 0 44 56"
-        fill="none"
-        animate={{ y: [0, 6, 0], opacity: [0.35, 0.6, 0.35] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path
-          d="M10 10 L22 24 L34 10"
-          stroke="#ffffff"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M10 28 L22 42 L34 28"
-          stroke="#ffffff"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </motion.svg>
-    </button>
+      <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">The places that shaped me</span>
+      <DestinyWheel turning={disabled} arrow="↓" />
+    </motion.button>
   );
 };
 
-const RootLayoutInner = ({ children }) => {
+const RootLayoutInner = ({ children, isHome, isBlog }) => {
   const panelId = useId();
   const [expanded, setExpanded] = useState(false);
-  const openRef = useRef();
-  const closeRef = useRef();
-  const navRef = useRef();
-  const blueCardRef = useRef(null);
+  const [view, setView] = useState("intro");
+  const [transitioning, setTransitioning] = useState(false);
+  const introRef = useRef(null);
   const citiesRef = useRef(null);
-  const animatingRef = useRef(false);
+  const openRef = useRef(null);
+  const closeRef = useRef(null);
+  const enterRef = useRef(null);
+  const backRef = useRef(null);
+  const hasTransitioned = useRef(false);
   const shouldReduceMotion = useReducedMotion();
 
-  // Block manual downward scroll once the user has reached the bottom of
-  // the blue card (the "stop" point). Only the arrow-click animation is
-  // allowed to pass through. We block at every layer (wheel, touch, keys,
-  // scrollbar) and also clamp the scroll position as a hard backstop.
   useEffect(() => {
-    // Compute the maximum allowed scrollY (where the snap-end stop sits).
-    const maxScrollY = () => {
-      const blue = blueCardRef.current;
-      if (!blue) return Infinity;
-      const blueBottom = blue.offsetTop + blue.offsetHeight;
-      // 80px matches scrollMarginBottom: blue.bottom should sit 80px above
-      // viewport bottom when at the stop, i.e. scrollY = blueBottom - vh + 80.
-      return blueBottom - window.innerHeight + 80;
+    if (!isHome) return;
+    let frame;
+    const revealWriting = () => {
+      if (window.location.hash !== "#articles") return;
+      frame = requestAnimationFrame(() => {
+        introRef.current?.scrollTo({ top: 0, behavior: "instant" });
+        setExpanded(true);
+      });
     };
-
-    const isLocked = () => !animatingRef.current && !expanded;
-
-    // Proactive clamp: if the wheel delta would take us past the stop,
-    // cancel the event AND synchronously move only the allowed amount.
-    // We bypass `scroll-behavior: smooth` by writing scrollTop directly so
-    // these clamp scrolls are instantaneous and don't stack into a shake.
-    const onWheel = (e) => {
-      if (!isLocked()) return;
-      if (e.deltaY <= 0) return;
-      const max = maxScrollY();
-      const remaining = max - window.scrollY;
-      if (remaining <= 0) {
-        e.preventDefault();
-        return;
-      }
-      if (e.deltaY > remaining) {
-        e.preventDefault();
-        document.documentElement.scrollTop = window.scrollY + remaining;
-      }
-    };
-
-    let touchStartY = 0;
-    let lastTouchY = 0;
-    const onTouchStart = (e) => {
-      const y = e.touches[0]?.clientY ?? 0;
-      touchStartY = y;
-      lastTouchY = y;
-    };
-    const onTouchMove = (e) => {
-      if (!isLocked()) return;
-      const y = e.touches[0]?.clientY ?? 0;
-      const dy = lastTouchY - y;
-      lastTouchY = y;
-      if (dy <= 0) return;
-      const max = maxScrollY();
-      const remaining = max - window.scrollY;
-      if (remaining <= 0) {
-        e.preventDefault();
-        return;
-      }
-      if (dy > remaining) {
-        e.preventDefault();
-        document.documentElement.scrollTop = window.scrollY + remaining;
-      }
-    };
-
-    const blockedKeys = new Set([
-      "ArrowDown",
-      "PageDown",
-      "End",
-      " ",
-      "Spacebar",
-    ]);
-    const onKeyDown = (e) => {
-      if (!isLocked()) return;
-      if (blockedKeys.has(e.key) && window.scrollY >= maxScrollY() - 4) {
-        e.preventDefault();
-      }
-    };
-
-    // Hard, instant backstop: only triggers if something escapes the
-    // proactive clamp (e.g., keyboard). Direct scrollTop write so it's
-    // instant and doesn't stack with `scroll-behavior: smooth`.
-    const onScroll = () => {
-      if (!isLocked()) return;
-      const max = maxScrollY();
-      if (window.scrollY > max) {
-        document.documentElement.scrollTop = max;
-      }
-    };
-
-    window.addEventListener("wheel", onWheel, { passive: false });
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("scroll", onScroll, { passive: true });
+    revealWriting();
+    window.addEventListener("hashchange", revealWriting);
     return () => {
-      window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+      window.removeEventListener("hashchange", revealWriting);
     };
-  }, [expanded]);
+  }, [isHome]);
 
-  // Click the arrow → release the gate, native smooth scroll to cities,
-  // then restore lock.
-  const scrollToCities = () => {
-    const cities = citiesRef.current;
-    if (!cities) return;
-    animatingRef.current = true;
-    const html = document.documentElement;
-    const prevSnap = html.style.scrollSnapType;
-    html.style.scrollSnapType = "none";
-    // Leave only a slim strip (~1/10 vh) of the blue page above cities.
-    const targetY =
-      cities.getBoundingClientRect().top + window.scrollY -
-      window.innerHeight / 10;
-    window.scrollTo({ top: targetY, behavior: "smooth" });
-    window.setTimeout(() => {
-      html.style.scrollSnapType = prevSnap;
-      animatingRef.current = false;
-    }, 1200);
+  const toggleMenu = () => {
+    setExpanded(!expanded);
+    if (!expanded) {
+      if (isHome) introRef.current?.scrollTo({ top: 0, behavior: shouldReduceMotion ? "instant" : "smooth" });
+      else window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "instant" : "smooth" });
+    }
   };
 
   useEffect(() => {
-    function onClick(event) {
-      if (event.target.closest("a")?.href === window.location.href) {
-        setExpanded(false);
-      }
-    }
-    window.addEventListener("click", onClick);
-
-    return () => {
-      window.removeEventListener("click", onClick);
-    };
-  }, []);
-
-  // Disable scroll-snap while the dropdown is expanding so the browser
-  // doesn't snap the page back to the blue card and hide the menu.
-  useEffect(() => {
-    const html = document.documentElement;
-    if (expanded) {
-      html.style.scrollSnapType = "none";
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      // restore after the close animation finishes
-      const t = window.setTimeout(() => {
-        html.style.scrollSnapType = "";
-      }, 1200);
-      return () => window.clearTimeout(t);
-    }
+    if (expanded) closeRef.current?.focus({ preventScroll: true });
   }, [expanded]);
-  return (
-    <MotionConfig transition={shouldReduceMotion ? { duration: 0 } : undefined}>
+
+  useEffect(() => {
+    // Wait for React to enable the destination arrow before focusing it.
+    if (hasTransitioned.current && !transitioning) {
+      (view === "cities" ? backRef : enterRef).current?.focus({ preventScroll: true });
+    }
+  }, [view, transitioning]);
+
+  const changeView = (nextView) => {
+    if (transitioning) return;
+    hasTransitioned.current = true;
+    if (nextView === "cities") citiesRef.current?.scrollTo({ top: 0, behavior: "instant" });
+    setTransitioning(true);
+    setView(nextView);
+  };
+
+  const finishTransition = () => {
+    if (!transitioning) return;
+    setTransitioning(false);
+  };
+
+  const navigation = (
       <header>
-        <div
-          className="absolute left-0 right-0 top-2 z-40 pt-14"
-          aria-hidden={expanded ? "true" : undefined}
-          inert={expanded ? "" : undefined}
-        >
-          {/* Header */}
-          <Header
-            panelId={panelId}
-            icon={HiMenuAlt4}
-            toggleRef={openRef}
-            expanded={expanded}
-            onToggle={() => {
-              setExpanded((expanded) => !expanded);
-              window.setTimeout(() =>
-                closeRef.current?.focus({ preventScroll: true })
-              );
-            }}
-          />
+        <div className="absolute left-0 right-0 top-2 z-40 pt-8 sm:pt-14" aria-hidden={expanded || undefined} inert={expanded ? "" : undefined}>
+          <Header panelId={panelId} icon={HiMenuAlt4} toggleRef={openRef} expanded={expanded} onToggle={toggleMenu} />
         </div>
         <motion.div
-          layout
           id={panelId}
           initial={false}
-          animate={{
-            backgroundColor: expanded
-              ? "rgba(250, 192, 61, 1)"
-              : "rgba(250, 192, 61, 0)",
-          }}
-          style={{ height: expanded ? "auto" : "0.5rem" }}
-          className="relative z-50 overflow-hidden pt-2"
-          transition={{
-            duration: 1.1,
-            ease: [0.22, 1, 0.36, 1],
-            backgroundColor: {
-              duration: 0.01,
-              delay: expanded ? 0 : 1.1,
-            },
-          }}
-          aria-hidden={expanded ? undefined : "true"}
+          animate={{ height: expanded ? "auto" : 24 }}
+          transition={{ duration: shouldReduceMotion ? 0.55 : 1.35, ease: [0.35, 0, 0.2, 1] }}
+          className="relative z-50 overflow-hidden bg-[#10172d] text-[#f6efd9]"
+          style={{ perspective: 1200, overflowAnchor: "none" }}
+          aria-hidden={!expanded || undefined}
           inert={expanded ? undefined : ""}
         >
-          <motion.div
-            layout
-            style={{ backgroundColor: "#FAC03D" }}
-            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div
-              ref={navRef}
-              className="pb-16 pt-14"
-              style={{ backgroundColor: "#FAC03D" }}
-            >
-              <Header
-                invert
-                panelId={panelId}
-                icon={IoMdClose}
-                toggleRef={closeRef}
-                expanded={expanded}
-                onToggle={() => {
-                  setExpanded((expanded) => !expanded);
-                  window.setTimeout(() =>
-                    openRef.current?.focus({ preventScroll: true })
-                  );
-                }}
-              />
+          {/* This full-height scene stays mounted. Only the outer cover moves. */}
+          <div className="relative min-h-[100svh]" data-article-sky>
+            <NightSky />
+            <div className="relative z-10">
+          <div className="pb-6 pt-10 sm:pt-16">
+            <Header invert night panelId={panelId} icon={IoMdClose} toggleRef={closeRef} expanded={expanded} onToggle={() => {
+              setExpanded(false);
+              openRef.current?.focus({ preventScroll: true });
+            }} />
+          </div>
+          <Container className="pb-10 pt-4">
+            <div className="mb-4 flex items-baseline justify-between gap-4 border-b border-white/20 pb-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#efd7a5]">Notes along the way</p>
             </div>
-
-            <ArticlesNavigation />
-          </motion.div>
+            <ArticleList night />
+          </Container>
+            </div>
+          </div>
         </motion.div>
       </header>
-      <motion.div
-        layout
-        className="relative flex flex-col"
-        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div
-          ref={blueCardRef}
-          style={{
-            borderTopLeftRadius: 40,
-            borderTopRightRadius: 40,
-            borderBottomLeftRadius: 40,
-            borderBottomRightRadius: 40,
-            backgroundColor: "#2C2F3B",
-            minHeight: "calc(100vh - 3.5rem)",
-          }}
-          className="relative flex w-full flex-col overflow-hidden pt-14"
-        >
-          <div className="relative isolate flex w-full flex-auto flex-col pt-9">
-            <main className="w-full flex-auto">{children}</main>
-          </div>
-          <ScrollHint onClick={scrollToCities} />
-        </div>
-        <div
-          ref={citiesRef}
-          style={{
-            backgroundColor: "#FAC03D",
-            minHeight: "80vh",
-          }}
-          className="w-full"
-        >
-          <CitiesPage />
-        </div>
+  );
+
+  const intro = (
+    <>
+      {navigation}
+      <motion.div className="relative flex min-h-[calc(100dvh-3.5rem)] flex-col overflow-hidden rounded-b-[40px] bg-[#2C2F3B] pt-14" initial={false} animate={{ borderTopLeftRadius: expanded ? 40 : 0, borderTopRightRadius: expanded ? 40 : 0 }} transition={{ duration: shouldReduceMotion ? 0.55 : 1.35 }}>
+        <div className="relative isolate w-full flex-auto pt-9">{children}</div>
+        {isHome && <ScrollHint onClick={() => changeView("cities")} disabled={transitioning} buttonRef={enterRef} />}
       </motion.div>
+      {/* This is the only content below the intro: a small yellow reveal. */}
+      <div aria-hidden="true" className="h-12 shrink-0 bg-[#FAC03D]" />
+    </>
+  );
+
+  if (isBlog) return (
+    <MotionConfig reducedMotion="never">
+      <div className="relative isolate min-h-screen bg-[#10172d] text-[#f6efd9]">
+        <div className="pointer-events-none fixed inset-0 -z-10"><NightSky /></div>
+        {navigation}
+        <motion.div className="relative z-10 pt-24" data-night-reading initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 28 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: shouldReduceMotion ? 0.15 : 0.7, duration: shouldReduceMotion ? 0.25 : 0.8 }}>
+          {children}
+        </motion.div>
+      </div>
+    </MotionConfig>
+  );
+
+  if (!isHome) return (
+    <MotionConfig reducedMotion="never">
+      <motion.div className="relative" initial={{ opacity: 0, y: shouldReduceMotion ? 12 : 48 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: shouldReduceMotion ? 0.35 : 0.7, ease: [0.22, 1, 0.36, 1] }}>
+        {intro}
+      </motion.div>
+    </MotionConfig>
+  );
+
+  return (
+    <MotionConfig reducedMotion="never">
+      <div className="fixed inset-0 overflow-hidden bg-[#FAC03D]" style={{ perspective: 1600 }} data-home-view={view} data-transitioning={transitioning}>
+        <motion.div
+          className="relative h-full w-full"
+          initial={false}
+          animate={view}
+          variants={viewSlide}
+          transition={shouldReduceMotion ? { duration: 0.55, ease: "easeInOut" } : slideTransition}
+          onAnimationComplete={finishTransition}
+        >
+          <div
+            ref={introRef}
+            data-scroll-view="intro"
+            tabIndex={view === "intro" ? 0 : -1}
+            aria-label="Home"
+            aria-hidden={view !== "intro" || undefined}
+            inert={view !== "intro" ? "" : undefined}
+            className="absolute inset-0 overflow-y-auto overscroll-none bg-[#10172d] focus:outline-none"
+            style={{ scrollbarGutter: "stable", pointerEvents: transitioning ? "none" : undefined }}
+          >{intro}</div>
+          <div
+            ref={citiesRef}
+            data-scroll-view="cities"
+            tabIndex={view === "cities" ? 0 : -1}
+            aria-label="Cities"
+            aria-hidden={view !== "cities" || undefined}
+            inert={view !== "cities" ? "" : undefined}
+            className="absolute inset-x-0 top-full h-full overflow-y-auto overscroll-none bg-[#FAC03D] text-[#2C2F3B] focus:outline-none"
+            style={{ scrollbarGutter: "stable", pointerEvents: transitioning ? "none" : undefined }}
+          >
+            <div className="sticky top-0 z-20 border-b border-[#2C2F3B]/15 bg-[#FAC03D]/95 px-6 py-4 backdrop-blur-sm sm:px-10">
+              <motion.button ref={backRef} type="button" onClick={() => changeView("intro")} disabled={transitioning} whileHover={shouldReduceMotion ? undefined : { y: -2 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }} className="mx-auto flex items-center gap-3 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.15em] transition-colors hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2C2F3B]" aria-label="Back to home">
+                <DestinyWheel turning={transitioning} direction={-1} arrow="↑" /> Back to home
+              </motion.button>
+            </div>
+            <CitiesPage />
+          </div>
+        </motion.div>
+        {transitioning && !shouldReduceMotion && <TransitionAtmosphere key={view} scene={view === "cities" ? "sand" : "water"} />}
+      </div>
     </MotionConfig>
   );
 };
 
-const RootLayout = ({ children }) => {
-  const pathName = usePathname();
-  return <RootLayoutInner key={pathName}>{children}</RootLayoutInner>;
-};
-
-export default RootLayout;
+export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  return <NightNavigationProvider><RootLayoutInner key={pathname} isHome={pathname === "/"} isBlog={pathname.startsWith("/blog")}>{children}</RootLayoutInner></NightNavigationProvider>;
+}

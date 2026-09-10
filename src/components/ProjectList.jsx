@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import clsx from "clsx";
 import { useState, useEffect } from "react";
 import FadeIn from "./FadeIn";
+import { useReducedMotion } from "framer-motion";
 import pomu1 from "../images/projects/pomu-1.jpg";
 import pomu2 from "../images/projects/pomu-2.jpg";
 import pomu3 from "../images/projects/pomu-3.jpg";
@@ -18,20 +18,22 @@ import momeChoix2 from "../images/projects/mome-2.jpg";
 // Image carousel component
 const ImageCarousel = ({ images, alt, className }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  console.log(images);
+  const reduceMotion = useReducedMotion();
   useEffect(() => {
+    if (reduceMotion || images.length < 2) return;
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
     }, 3000); // Change image every 3 seconds
 
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, reduceMotion]);
 
   return (
     <div className={clsx("relative overflow-hidden", className)}>
       {images.map((image, index) => (
         <div
-          key={image}
+          key={image.src}
+          aria-hidden={index !== currentIndex}
           className={clsx(
             "absolute inset-0 transition-opacity duration-1000",
             index === currentIndex ? "opacity-100" : "opacity-0"
@@ -41,6 +43,7 @@ const ImageCarousel = ({ images, alt, className }) => {
             src={image}
             alt={`${alt} ${index + 1}`}
             fill
+            sizes="(min-width: 1024px) 480px, (min-width: 640px) 600px, 90vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
@@ -108,7 +111,7 @@ const ProjectCard = ({ project, className }) => {
   return (
     <div
       className={clsx(
-        "group relative rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+        "group relative border-b border-white/10 pb-8 last:border-0",
         className
       )}
     >
@@ -116,22 +119,22 @@ const ProjectCard = ({ project, className }) => {
       <ImageCarousel
         images={project.images}
         alt={project.title}
-        className="aspect-[4/3] mb-4 rounded-lg bg-neutral-100"
+        className="aspect-[16/9] mb-5 rounded-2xl bg-white/5"
       />
 
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
+        <h3 className="font-display text-2xl font-medium text-white">
           {project.title}
         </h3>
 
-        <p className="text-sm text-neutral-600 line-clamp-3">
+        <p className="text-sm leading-relaxed text-white/65">
           {project.description}
         </p>
 
         {/* Achievement badges for special projects */}
         {project.achievements && (
           <div className="space-y-2">
-            <p className="text-xs font-medium text-neutral-700">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/45">
               Achievements:
             </p>
             <div className="flex flex-wrap gap-1">
@@ -141,7 +144,7 @@ const ProjectCard = ({ project, className }) => {
                   href={achievement.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block rounded-full bg-green-100 px-2 py-1 text-xs text-green-700 hover:bg-green-200 transition-colors"
+                  className="inline-block rounded-full border border-[#FAC03D]/20 bg-[#FAC03D]/5 px-2.5 py-1 text-[10px] text-[#FAC03D] transition-colors hover:bg-[#FAC03D]/15"
                 >
                   {achievement.name}
                 </a>
@@ -154,7 +157,7 @@ const ProjectCard = ({ project, className }) => {
           {project.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-block rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+              className="inline-block rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-white/55"
             >
               {tag}
             </span>
@@ -166,7 +169,7 @@ const ProjectCard = ({ project, className }) => {
             href={project.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+            className="inline-flex items-center gap-1 text-sm font-medium text-[#FAC03D] transition-colors hover:text-white"
           >
             View Project
             <svg
@@ -191,25 +194,19 @@ const ProjectCard = ({ project, className }) => {
 
 const ProjectList = ({ className }) => {
   return (
-    <FadeIn className={className}>
-      <div className="h-full">
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold text-white">
-            Recent Projects
-          </h2>
-          <p className="text-white mt-2">
-            From Korea to Beijing, Berkeley to NYU - my entrepreneurial journey
-          </p>
+    <FadeIn className={clsx("min-w-0 self-start", className)}>
+      <section aria-labelledby="updates-heading" className="rounded-[2rem] border-t border-white/10 bg-gradient-to-b from-white/[0.06] via-white/[0.02] to-transparent px-5 pt-6 sm:px-7 sm:pt-7">
+        <div className="mb-7">
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#FAC03D]">Work in motion</p>
+          <h2 id="updates-heading" className="font-display text-2xl font-medium text-white">Recent updates</h2>
+          <p className="mt-2 text-sm leading-relaxed text-white/55">Things I’ve been building, exploring, and putting into the world.</p>
         </div>
-
-        <div className="h-[calc(100vh-12rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent">
-          <div className="space-y-6 pr-2">
-            {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
+        <div tabIndex={0} role="region" aria-label="Recent updates" className="updates-scroll rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FAC03D] lg:max-h-[70vh] lg:overflow-y-auto">
+          <div className="space-y-8 pb-12 lg:pr-3">
+            {projects.map((project) => <ProjectCard key={project.id} project={project} />)}
           </div>
         </div>
-      </div>
+      </section>
     </FadeIn>
   );
 };

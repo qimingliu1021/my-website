@@ -8,7 +8,7 @@ export default function Home() {
   const fgColor = "#ffffff";
   return (
     <main style={{ backgroundColor: bgColor, color: fgColor }}>
-      <Container className="mt-24 sm:mt-32 pb-24">
+      <Container className="mt-24 sm:mt-32 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Left column - Your intro text */}
           <FadeIn className="max-w-3xl">
@@ -42,7 +42,7 @@ export default function Home() {
             </p>
           </FadeIn>
 
-          {/* Right column - Project list */}
+          {/* Right column - Recent updates */}
           <ProjectList className="lg:sticky lg:top-24" />
         </div>
       </Container>

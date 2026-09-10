@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 html {
-  scroll-snap-type: y proximity;
   scroll-behavior: smooth;
 }
 
@@ -43,4 +42,18 @@ html {
 }
 .qiming-btn-on-yellow:hover svg {
   fill: #ffffff !important;
+}
+
+/* The updates feed fades into the intro instead of ending in a hard cut. */
+@media (min-width: 1024px) {
+  .updates-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #ffffff30 transparent;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
