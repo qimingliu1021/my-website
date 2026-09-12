@@ -143,6 +143,16 @@
   background: #fff1d1;
   box-shadow: 0 0 4px #fff1d155;
 }
+
+/* Join the article sky to the navy behind the home card's rounded corners. */
+[data-article-sky] .nightSky::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 64px;
+  background: linear-gradient(to bottom, transparent, #10172d);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .transition { display: none; }
 }

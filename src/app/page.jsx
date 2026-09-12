@@ -4,7 +4,7 @@ import ProjectList from "@/components/ProjectList";
 import Link from "next/link";
 
 export default function Home() {
-  const bgColor = "#2C2F3B";
+  const bgColor = "#8DA6D2";
   const fgColor = "#ffffff";
   return (
     <main style={{ backgroundColor: bgColor, color: fgColor }}>
@@ -19,18 +19,17 @@ export default function Home() {
               A developer dreaming of being an artist
             </h1>
             <p className="mt-6 text-xl" style={{ color: fgColor }}>
-              I am founder of{" "}
+              I am the developer of{" "}
               <Link
-                href="https://www.yi-universe.com"
+                href="https://naviya.tech"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline transition-opacity hover:opacity-80"
                 style={{ color: fgColor }}
               >
-                Yiverse
+Naviya
               </Link>
-              , a AI platform helps people find their city meant to be by
-              Chinese I Ching trigram.
+              , a travel planner that maps real local happenings to a trip itinerary. 
             </p>
             <p className="mt-6 text-xl" style={{ color: fgColor }}>
               I participated in 3 startup projects, Pomu - help fashion brands

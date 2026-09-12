@@ -16,7 +16,7 @@ html {
   color: #2C2F3B !important;
 }
 .qiming-btn-on-blue:hover {
-  background-color: #2C2F3B !important;
+  background-color: var(--qiming-button-hover, #2C2F3B) !important;
   color: #ffffff !important;
 }
 .qiming-btn-on-blue svg {
@@ -33,7 +33,7 @@ html {
   color: #000000 !important;
 }
 .qiming-btn-on-yellow:hover {
-  background-color: #2C2F3B !important;
+  background-color: var(--qiming-button-hover, #2C2F3B) !important;
   color: #ffffff !important;
 }
 .qiming-btn-on-yellow svg {

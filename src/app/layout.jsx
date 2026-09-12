@@ -13,7 +13,7 @@ export default function Layout({ children }) {
     <html
       lang="en"
       className="h-full text-base antialiased text-neutral-100"
-      style={{ backgroundColor: "#FAC03D" }}
+      style={{ backgroundColor: "#F9D77C" }}
     >
       <body className="flex min-h-full flex-col">
         <RootLayout>{children}</RootLayout>
